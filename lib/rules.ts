@@ -4,6 +4,7 @@ export type Recommendation = {
   ctv: string;
   elective: string;
   ptv: string;
+  explanation: string;
   citations: {
     organization: string;
     title: string;
@@ -22,6 +23,7 @@ export function generateRecommendation(data: any): Recommendation {
     evidence: "HIGH" as const,
   };
 
+  // HEAD & NECK
   if (site === "Head & Neck") {
     if (nStage?.includes("N2")) {
       return {
@@ -35,6 +37,8 @@ export function generateRecommendation(data: any): Recommendation {
           "Ipsilateral levels II–IV + contralateral II–III.",
         ptv:
           "CTV + 3–5 mm depending on immobilization accuracy.",
+        explanation:
+          "N2 disease detected. According to EORTC consensus atlas, bilateral elective nodal coverage is recommended in advanced nodal stage. CTV expansion of 5–10 mm reflects microscopic spread risk. PTV margin per ICRU 83.",
         citations: [
           {
             organization: "EORTC",
@@ -53,6 +57,8 @@ export function generateRecommendation(data: any): Recommendation {
       ctv: "GTV + 5 mm expansion.",
       elective: "Ipsilateral nodal levels depending on site.",
       ptv: "CTV + 3–5 mm.",
+      explanation:
+        "No advanced nodal stage detected. Ipsilateral coverage sufficient. Margin selection reflects standard microscopic spread risk per EORTC guidance.",
       citations: [
         {
           organization: "EORTC",
@@ -65,6 +71,7 @@ export function generateRecommendation(data: any): Recommendation {
     };
   }
 
+  // BREAST
   if (site === "Breast") {
     if (marginMm && Number(marginMm) <= 2) {
       return {
@@ -74,6 +81,8 @@ export function generateRecommendation(data: any): Recommendation {
         ctv: "Tumor bed + 15 mm limited to breast tissue.",
         elective: "Regional nodes if N positive.",
         ptv: "CTV + 5 mm.",
+        explanation:
+          "Margin ≤2 mm indicates higher microscopic residual risk. ESTRO guidelines recommend expanded tumor bed coverage. PTV margin applied as per ICRU recommendations.",
         citations: [
           {
             organization: "ESTRO",
@@ -92,6 +101,8 @@ export function generateRecommendation(data: any): Recommendation {
       ctv: "Whole breast CTV.",
       elective: "Regional nodes if indicated.",
       ptv: "CTV + 5 mm.",
+      explanation:
+        "Adequate surgical margins. Whole breast irradiation per ESTRO consensus. Standard PTV margin per ICRU 83.",
       citations: [
         {
           organization: "ESTRO",
@@ -104,6 +115,7 @@ export function generateRecommendation(data: any): Recommendation {
     };
   }
 
+  // PROSTATE
   if (site === "Prostate") {
     if (tStage?.includes("T3")) {
       return {
@@ -113,6 +125,8 @@ export function generateRecommendation(data: any): Recommendation {
         ctv: "Prostate + proximal seminal vesicles.",
         elective: "Pelvic nodes if high risk.",
         ptv: "CTV + 5–7 mm (posterior margin 3–5 mm).",
+        explanation:
+          "T3 disease indicates extracapsular extension risk. RTOG prostate atlas recommends inclusion of seminal vesicles in high-risk disease. Standard PTV margins per ICRU.",
         citations: [
           {
             organization: "RTOG",
@@ -131,6 +145,8 @@ export function generateRecommendation(data: any): Recommendation {
       ctv: "Prostate only.",
       elective: "No elective nodes in low risk.",
       ptv: "CTV + 5–7 mm.",
+      explanation:
+        "Organ-confined disease. RTOG consensus supports prostate-only coverage in low-risk cases.",
       citations: [
         {
           organization: "RTOG",
@@ -149,6 +165,8 @@ export function generateRecommendation(data: any): Recommendation {
     ctv: "",
     elective: "",
     ptv: "",
+    explanation:
+      "No structured rule triggered. Default ICRU definitions applied.",
     citations: [ICRU],
   };
 }
