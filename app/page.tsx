@@ -6,33 +6,15 @@ import { generateRecommendation, Recommendation } from "../lib/rules";
 export default function Home() {
   const [form, setForm] = useState({
     site: "",
+    subsite: "",
     tStage: "",
     nStage: "",
-    marginMm: "",
   });
 
   const [result, setResult] = useState<Recommendation | null>(null);
 
   const handleGenerate = () => {
     setResult(generateRecommendation(form));
-  };
-
-  const downloadJSON = () => {
-    if (!result) return;
-    const blob = new Blob([JSON.stringify(result, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "contourai-report.json";
-    a.click();
-  };
-
-  const getRiskLabel = () => {
-    if (form.nStage?.includes("N2") || form.tStage?.includes("T3"))
-      return "High Risk";
-    return "Standard Risk";
   };
 
   return (
@@ -54,29 +36,39 @@ export default function Home() {
           >
             <option value="">Select Site</option>
             <option>Head & Neck</option>
-            <option>Breast</option>
-            <option>Prostate</option>
           </select>
+
+          {form.site === "Head & Neck" && (
+            <select
+              value={form.subsite}
+              onChange={(e) =>
+                setForm({ ...form, subsite: e.target.value })
+              }
+              style={{ width: "100%", marginTop: 10 }}
+            >
+              <option value="">Select Subsite</option>
+              <option>Oropharynx</option>
+              <option>Oral Cavity</option>
+              <option>Larynx</option>
+              <option>Nasopharynx</option>
+            </select>
+          )}
 
           <input
             placeholder="T Stage"
             value={form.tStage}
-            onChange={(e) => setForm({ ...form, tStage: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, tStage: e.target.value })
+            }
             style={{ width: "100%", marginTop: 10 }}
           />
 
           <input
             placeholder="N Stage"
             value={form.nStage}
-            onChange={(e) => setForm({ ...form, nStage: e.target.value })}
-            style={{ width: "100%", marginTop: 10 }}
-          />
-
-          <input
-            placeholder="Margin (mm)"
-            type="number"
-            value={form.marginMm}
-            onChange={(e) => setForm({ ...form, marginMm: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, nStage: e.target.value })
+            }
             style={{ width: "100%", marginTop: 10 }}
           />
 
@@ -102,17 +94,6 @@ export default function Home() {
 
           {result ? (
             <>
-              <div style={{
-                padding: 10,
-                backgroundColor: "#e2e8f0",
-                borderRadius: 6,
-                marginBottom: 15
-              }}>
-                <strong>
-                  {form.site} – {form.tStage}{form.nStage} – {getRiskLabel()}
-                </strong>
-              </div>
-
               <p><strong>Summary:</strong> {result.summary}</p>
               <p><strong>GTV:</strong> {result.gtv}</p>
               <p><strong>CTV:</strong> {result.ctv}</p>
@@ -127,20 +108,6 @@ export default function Home() {
                   {result.explanation}
                 </p>
               </details>
-
-              <button
-                onClick={downloadJSON}
-                style={{
-                  marginTop: 15,
-                  padding: 8,
-                  backgroundColor: "green",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                }}
-              >
-                Download JSON
-              </button>
             </>
           ) : (
             <p style={{ color: "#64748b" }}>
@@ -168,9 +135,7 @@ export default function Home() {
                       backgroundColor:
                         c.evidence === "HIGH"
                           ? "#16a34a"
-                          : c.evidence === "MEDIUM"
-                          ? "#f59e0b"
-                          : "#dc2626",
+                          : "#f59e0b",
                       color: "white",
                     }}
                   >
