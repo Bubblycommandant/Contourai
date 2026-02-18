@@ -29,6 +29,12 @@ export default function Home() {
     a.click();
   };
 
+  const getRiskLabel = () => {
+    if (form.nStage?.includes("N2") || form.tStage?.includes("T3"))
+      return "High Risk";
+    return "Standard Risk";
+  };
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
@@ -96,6 +102,17 @@ export default function Home() {
 
           {result ? (
             <>
+              <div style={{
+                padding: 10,
+                backgroundColor: "#e2e8f0",
+                borderRadius: 6,
+                marginBottom: 15
+              }}>
+                <strong>
+                  {form.site} – {form.tStage}{form.nStage} – {getRiskLabel()}
+                </strong>
+              </div>
+
               <p><strong>Summary:</strong> {result.summary}</p>
               <p><strong>GTV:</strong> {result.gtv}</p>
               <p><strong>CTV:</strong> {result.ctv}</p>
