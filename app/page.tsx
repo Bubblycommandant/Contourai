@@ -119,6 +119,15 @@ export default function Home() {
               <p><strong>Elective:</strong> {result.elective}</p>
               <p><strong>PTV:</strong> {result.ptv}</p>
 
+              <details style={{ marginTop: 15 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                  Why this recommendation?
+                </summary>
+                <p style={{ marginTop: 8 }}>
+                  {result.explanation}
+                </p>
+              </details>
+
               <button
                 onClick={downloadJSON}
                 style={{
