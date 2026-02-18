@@ -2,71 +2,201 @@
 
 import { useState } from "react";
 
-export default function Home() {
-  const [site, setSite] = useState("");
-  const [result, setResult] = useState<any>(null);
+type Recommendation = {
+  summary: string;
+  gtv: string;
+  ctv: string;
+  elective: string;
+  ptv: string;
+  citations: string[];
+};
 
-  const generateRecommendation = (site: string) => {
-    if (site === "Head & Neck") {
+function generateRecommendation(data: any): Recommendation {
+  const { site, tStage, nStage, marginMm, ene } = data;
+
+  const icru = "ICRU Report 83 (2010)";
+
+  // HEAD & NECK
+  if (site === "Head & Neck") {
+    if (nStage?.includes("N2")) {
       return {
-        summary: "Include gross disease and at-risk nodal basins.",
-        gtv: "All visible primary and nodal disease on imaging.",
-        ctv: "GTV + 5–10 mm anatomically trimmed.",
-        elective: "Include adjacent nodal levels depending on N stage.",
-        ptv: "CTV + 3–5 mm depending on setup accuracy.",
-        citations: ["EORTC 2018 Head & Neck Atlas", "ICRU Report 83"]
+        summary:
+          "Locally advanced nodal disease – bilateral neck coverage recommended.",
+        gtv:
+          "All radiologically visible primary and nodal disease.",
+        ctv:
+          "GTV + 5–10 mm anatomically trimmed to respect barriers.",
+        elective:
+          "Ipsilateral levels II–IV + contralateral II–III.",
+        ptv:
+          "CTV + 3–5 mm depending on immobilization accuracy.",
+        citations: [
+          "EORTC Head & Neck Atlas 2018",
+          icru,
+        ],
       };
     }
 
-    if (site === "Breast") {
+    return {
+      summary: "Early-stage or limited nodal disease.",
+      gtv: "Gross primary ± involved nodes.",
+      ctv: "GTV + 5 mm expansion.",
+      elective: "Ipsilateral nodal levels depending on site.",
+      ptv: "CTV + 3–5 mm.",
+      citations: ["EORTC Head & Neck Atlas 2018", icru],
+    };
+  }
+
+  // BREAST
+  if (site === "Breast") {
+    if (marginMm && marginMm <= 2) {
       return {
-        summary: "Adjuvant breast or chest wall irradiation.",
-        gtv: "Tumor bed identified via clips/imaging.",
-        ctv: "Tumor bed + 10–15 mm within breast tissue.",
+        summary: "Close margin – high-risk tumor bed coverage required.",
+        gtv: "Tumor bed defined by clips and imaging.",
+        ctv: "Tumor bed + 15 mm limited to breast tissue.",
         elective: "Regional nodes if N positive.",
         ptv: "CTV + 5 mm typical.",
-        citations: ["ESTRO Breast CTV Guidelines", "ICRU Report 83"]
+        citations: ["ESTRO Breast Guidelines 2015", icru],
       };
     }
 
-    return null;
+    return {
+      summary: "Standard adjuvant whole breast irradiation.",
+      gtv: "Tumor bed.",
+      ctv: "Whole breast CTV.",
+      elective: "Regional nodes if indicated.",
+      ptv: "CTV + 5 mm.",
+      citations: ["ESTRO Breast Guidelines 2015", icru],
+    };
+  }
+
+  // PROSTATE
+  if (site === "Prostate") {
+    if (tStage?.includes("T3")) {
+      return {
+        summary: "High-risk disease – seminal vesicle coverage required.",
+        gtv: "Prostate ± involved seminal vesicles.",
+        ctv: "Prostate + proximal seminal vesicles.",
+        elective: "Pelvic nodes if high risk.",
+        ptv: "CTV + 5–7 mm (posterior 3–5 mm).",
+        citations: ["RTOG Prostate Atlas", icru],
+      };
+    }
+
+    return {
+      summary: "Localized prostate cancer.",
+      gtv: "Prostate gland.",
+      ctv: "Prostate only.",
+      elective: "No elective nodes in low risk.",
+      ptv: "CTV + 5–7 mm.",
+      citations: ["RTOG Prostate Atlas", icru],
+    };
+  }
+
+  return {
+    summary: "No rule matched.",
+    gtv: "",
+    ctv: "",
+    elective: "",
+    ptv: "",
+    citations: [icru],
   };
+}
+
+export default function Home() {
+  const [form, setForm] = useState({
+    site: "",
+    tStage: "",
+    nStage: "",
+    marginMm: "",
+    ene: false,
+  });
+
+  const [result, setResult] = useState<Recommendation | null>(null);
 
   const handleGenerate = () => {
-    const output = generateRecommendation(site);
-    setResult(output);
+    setResult(generateRecommendation(form));
   };
 
   return (
     <div style={{ padding: 40, fontFamily: "Arial" }}>
-      <h1>ContourAI – Phase 1</h1>
+      <h1>ContourAI – Clinical Phase 1</h1>
 
-      <select
-        value={site}
-        onChange={(e) => setSite(e.target.value)}
-        style={{ padding: 8, marginTop: 20 }}
-      >
-        <option value="">Select Site</option>
-        <option>Head & Neck</option>
-        <option>Breast</option>
-      </select>
+      <div style={{ marginTop: 20 }}>
+        <select
+          value={form.site}
+          onChange={(e) =>
+            setForm({ ...form, site: e.target.value })
+          }
+        >
+          <option value="">Select Site</option>
+          <option>Head & Neck</option>
+          <option>Breast</option>
+          <option>Prostate</option>
+        </select>
 
-      <br /><br />
+        <br /><br />
 
-      <button
-        onClick={handleGenerate}
-        style={{
-          padding: 10,
-          backgroundColor: "blue",
-          color: "white",
-          border: "none"
-        }}
-      >
-        Generate
-      </button>
+        <input
+          placeholder="T Stage (e.g., T2)"
+          value={form.tStage}
+          onChange={(e) =>
+            setForm({ ...form, tStage: e.target.value })
+          }
+        />
+
+        <br /><br />
+
+        <input
+          placeholder="N Stage (e.g., N2b)"
+          value={form.nStage}
+          onChange={(e) =>
+            setForm({ ...form, nStage: e.target.value })
+          }
+        />
+
+        <br /><br />
+
+        <input
+          placeholder="Margin (mm)"
+          type="number"
+          value={form.marginMm}
+          onChange={(e) =>
+            setForm({ ...form, marginMm: e.target.value })
+          }
+        />
+
+        <br /><br />
+
+        <label>
+          <input
+            type="checkbox"
+            checked={form.ene}
+            onChange={(e) =>
+              setForm({ ...form, ene: e.target.checked })
+            }
+          />
+          ENE Present
+        </label>
+
+        <br /><br />
+
+        <button
+          onClick={handleGenerate}
+          style={{
+            padding: 10,
+            backgroundColor: "blue",
+            color: "white",
+            border: "none",
+          }}
+        >
+          Generate Recommendation
+        </button>
+      </div>
 
       {result && (
         <div style={{ marginTop: 30 }}>
+          <h2>Recommendation</h2>
           <p><strong>Summary:</strong> {result.summary}</p>
           <p><strong>GTV:</strong> {result.gtv}</p>
           <p><strong>CTV:</strong> {result.ctv}</p>
@@ -75,7 +205,7 @@ export default function Home() {
 
           <h3>Citations:</h3>
           <ul>
-            {result.citations.map((c: string, i: number) => (
+            {result.citations.map((c, i) => (
               <li key={i}>{c}</li>
             ))}
           </ul>
