@@ -17,6 +17,18 @@ export default function Home() {
     setResult(generateRecommendation(form));
   };
 
+  const downloadJSON = () => {
+    if (!result) return;
+    const blob = new Blob([JSON.stringify(result, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "contourai-report.json";
+    a.click();
+  };
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
@@ -89,6 +101,20 @@ export default function Home() {
               <p><strong>CTV:</strong> {result.ctv}</p>
               <p><strong>Elective:</strong> {result.elective}</p>
               <p><strong>PTV:</strong> {result.ptv}</p>
+
+              <button
+                onClick={downloadJSON}
+                style={{
+                  marginTop: 15,
+                  padding: 8,
+                  backgroundColor: "green",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                }}
+              >
+                Download JSON
+              </button>
             </>
           ) : (
             <p style={{ color: "#64748b" }}>
@@ -104,8 +130,26 @@ export default function Home() {
           {result ? (
             <ul>
               {result.citations.map((c, i) => (
-                <li key={i} style={{ marginBottom: 8 }}>
-                  {c.organization} – {c.title} ({c.year})
+                <li key={i} style={{ marginBottom: 10 }}>
+                  <div>
+                    <strong>{c.organization}</strong> – {c.title} ({c.year})
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      backgroundColor:
+                        c.evidence === "HIGH"
+                          ? "#16a34a"
+                          : c.evidence === "MEDIUM"
+                          ? "#f59e0b"
+                          : "#dc2626",
+                      color: "white",
+                    }}
+                  >
+                    {c.evidence}
+                  </span>
                 </li>
               ))}
             </ul>
