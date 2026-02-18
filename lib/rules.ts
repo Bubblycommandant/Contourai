@@ -8,6 +8,7 @@ export type Recommendation = {
     organization: string;
     title: string;
     year: number;
+    evidence: "HIGH" | "MEDIUM" | "LOW";
   }[];
 };
 
@@ -18,6 +19,7 @@ export function generateRecommendation(data: any): Recommendation {
     organization: "ICRU",
     title: "ICRU Report 83",
     year: 2010,
+    evidence: "HIGH" as const,
   };
 
   if (site === "Head & Neck") {
@@ -38,6 +40,7 @@ export function generateRecommendation(data: any): Recommendation {
             organization: "EORTC",
             title: "Head & Neck Nodal Level Atlas",
             year: 2018,
+            evidence: "HIGH",
           },
           ICRU,
         ],
@@ -55,6 +58,7 @@ export function generateRecommendation(data: any): Recommendation {
           organization: "EORTC",
           title: "Head & Neck Nodal Level Atlas",
           year: 2018,
+          evidence: "HIGH",
         },
         ICRU,
       ],
@@ -62,7 +66,7 @@ export function generateRecommendation(data: any): Recommendation {
   }
 
   if (site === "Breast") {
-    if (marginMm && marginMm <= 2) {
+    if (marginMm && Number(marginMm) <= 2) {
       return {
         summary:
           "Close/positive margin — high-risk tumor bed expansion recommended.",
@@ -75,6 +79,7 @@ export function generateRecommendation(data: any): Recommendation {
             organization: "ESTRO",
             title: "Breast CTV Guidelines",
             year: 2015,
+            evidence: "HIGH",
           },
           ICRU,
         ],
@@ -92,6 +97,7 @@ export function generateRecommendation(data: any): Recommendation {
           organization: "ESTRO",
           title: "Breast CTV Guidelines",
           year: 2015,
+          evidence: "HIGH",
         },
         ICRU,
       ],
@@ -112,6 +118,7 @@ export function generateRecommendation(data: any): Recommendation {
             organization: "RTOG",
             title: "Prostate Contouring Atlas",
             year: 2009,
+            evidence: "HIGH",
           },
           ICRU,
         ],
@@ -129,6 +136,7 @@ export function generateRecommendation(data: any): Recommendation {
           organization: "RTOG",
           title: "Prostate Contouring Atlas",
           year: 2009,
+          evidence: "HIGH",
         },
         ICRU,
       ],
