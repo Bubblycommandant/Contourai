@@ -1,107 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-type Recommendation = {
-  summary: string;
-  gtv: string;
-  ctv: string;
-  elective: string;
-  ptv: string;
-  citations: string[];
-};
-
-function generateRecommendation(data: any): Recommendation {
-  const { site, tStage, nStage, marginMm, ene } = data;
-
-  const icru = "ICRU Report 83 (2010)";
-
-  // HEAD & NECK
-  if (site === "Head & Neck") {
-    if (nStage?.includes("N2")) {
-      return {
-        summary:
-          "Locally advanced nodal disease – bilateral neck coverage recommended.",
-        gtv:
-          "All radiologically visible primary and nodal disease.",
-        ctv:
-          "GTV + 5–10 mm anatomically trimmed to respect barriers.",
-        elective:
-          "Ipsilateral levels II–IV + contralateral II–III.",
-        ptv:
-          "CTV + 3–5 mm depending on immobilization accuracy.",
-        citations: [
-          "EORTC Head & Neck Atlas 2018",
-          icru,
-        ],
-      };
-    }
-
-    return {
-      summary: "Early-stage or limited nodal disease.",
-      gtv: "Gross primary ± involved nodes.",
-      ctv: "GTV + 5 mm expansion.",
-      elective: "Ipsilateral nodal levels depending on site.",
-      ptv: "CTV + 3–5 mm.",
-      citations: ["EORTC Head & Neck Atlas 2018", icru],
-    };
-  }
-
-  // BREAST
-  if (site === "Breast") {
-    if (marginMm && marginMm <= 2) {
-      return {
-        summary: "Close margin – high-risk tumor bed coverage required.",
-        gtv: "Tumor bed defined by clips and imaging.",
-        ctv: "Tumor bed + 15 mm limited to breast tissue.",
-        elective: "Regional nodes if N positive.",
-        ptv: "CTV + 5 mm typical.",
-        citations: ["ESTRO Breast Guidelines 2015", icru],
-      };
-    }
-
-    return {
-      summary: "Standard adjuvant whole breast irradiation.",
-      gtv: "Tumor bed.",
-      ctv: "Whole breast CTV.",
-      elective: "Regional nodes if indicated.",
-      ptv: "CTV + 5 mm.",
-      citations: ["ESTRO Breast Guidelines 2015", icru],
-    };
-  }
-
-  // PROSTATE
-  if (site === "Prostate") {
-    if (tStage?.includes("T3")) {
-      return {
-        summary: "High-risk disease – seminal vesicle coverage required.",
-        gtv: "Prostate ± involved seminal vesicles.",
-        ctv: "Prostate + proximal seminal vesicles.",
-        elective: "Pelvic nodes if high risk.",
-        ptv: "CTV + 5–7 mm (posterior 3–5 mm).",
-        citations: ["RTOG Prostate Atlas", icru],
-      };
-    }
-
-    return {
-      summary: "Localized prostate cancer.",
-      gtv: "Prostate gland.",
-      ctv: "Prostate only.",
-      elective: "No elective nodes in low risk.",
-      ptv: "CTV + 5–7 mm.",
-      citations: ["RTOG Prostate Atlas", icru],
-    };
-  }
-
-  return {
-    summary: "No rule matched.",
-    gtv: "",
-    ctv: "",
-    elective: "",
-    ptv: "",
-    citations: [icru],
-  };
-}
+import { generateRecommendation, Recommendation } from "../lib/rules";
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -109,13 +9,24 @@ export default function Home() {
     tStage: "",
     nStage: "",
     marginMm: "",
-    ene: false,
   });
 
   const [result, setResult] = useState<Recommendation | null>(null);
 
   const handleGenerate = () => {
     setResult(generateRecommendation(form));
+  };
+
+  const downloadJSON = () => {
+    if (!result) return;
+    const blob = new Blob([JSON.stringify(result, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "contourai-report.json";
+    a.click();
   };
 
   return (
@@ -138,7 +49,7 @@ export default function Home() {
         <br /><br />
 
         <input
-          placeholder="T Stage (e.g., T2)"
+          placeholder="T Stage"
           value={form.tStage}
           onChange={(e) =>
             setForm({ ...form, tStage: e.target.value })
@@ -148,7 +59,7 @@ export default function Home() {
         <br /><br />
 
         <input
-          placeholder="N Stage (e.g., N2b)"
+          placeholder="N Stage"
           value={form.nStage}
           onChange={(e) =>
             setForm({ ...form, nStage: e.target.value })
@@ -165,19 +76,6 @@ export default function Home() {
             setForm({ ...form, marginMm: e.target.value })
           }
         />
-
-        <br /><br />
-
-        <label>
-          <input
-            type="checkbox"
-            checked={form.ene}
-            onChange={(e) =>
-              setForm({ ...form, ene: e.target.checked })
-            }
-          />
-          ENE Present
-        </label>
 
         <br /><br />
 
@@ -206,9 +104,24 @@ export default function Home() {
           <h3>Citations:</h3>
           <ul>
             {result.citations.map((c, i) => (
-              <li key={i}>{c}</li>
+              <li key={i}>
+                {c.organization} – {c.title} ({c.year})
+              </li>
             ))}
           </ul>
+
+          <button
+            onClick={downloadJSON}
+            style={{
+              marginTop: 15,
+              padding: 8,
+              backgroundColor: "green",
+              color: "white",
+              border: "none",
+            }}
+          >
+            Download JSON
+          </button>
         </div>
       )}
     </div>
