@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
-        ContourAI – Head & Neck Module
+        ContourAI – Structured H&N Module
       </h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 20 }}>
@@ -100,8 +100,24 @@ export default function Home() {
               <p><strong>Summary:</strong> {result.summary}</p>
               <p><strong>GTV:</strong> {result.gtv}</p>
               <p><strong>CTV:</strong> {result.ctv}</p>
-              <p><strong>Elective:</strong> {result.elective}</p>
+              <p><strong>Elective:</strong> {result.electiveText}</p>
               <p><strong>PTV:</strong> {result.ptv}</p>
+
+              <details style={{ marginTop: 15 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                  Structured Levels (Machine Readable)
+                </summary>
+                <pre style={{ marginTop: 8, fontSize: 12 }}>
+{JSON.stringify(
+  {
+    laterality: result.laterality,
+    includedLevels: result.includedLevels,
+  },
+  null,
+  2
+)}
+                </pre>
+              </details>
 
               <details style={{ marginTop: 15 }}>
                 <summary style={{ cursor: "pointer", fontWeight: 600 }}>
