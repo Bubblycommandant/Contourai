@@ -2,7 +2,9 @@ export type Recommendation = {
   summary: string;
   gtv: string;
   ctv: string;
-  elective: string;
+  electiveText: string;
+  includedLevels: string[];
+  laterality: "Ipsilateral" | "Bilateral";
   ptv: string;
   explanation: string;
   citations: {
@@ -26,8 +28,9 @@ export function generateRecommendation(data: any): Recommendation {
   if (site === "Head & Neck" && subsite === "Oropharynx") {
 
     let ctvMargin = "5–7 mm";
-    let elective = "Ipsilateral levels II–IV";
-    let rpn = "Ipsilateral retropharyngeal nodes";
+    let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
+    let includedLevels = ["IIa", "IIb", "III", "IV"];
+    let rpnIncluded = false;
 
     const advancedN = nStage?.includes("N2");
     const enePresent =
@@ -37,7 +40,7 @@ export function generateRecommendation(data: any): Recommendation {
 
     // Bilateral neck logic
     if (advancedN) {
-      elective = "Ipsilateral II–IV + contralateral II–III";
+      laterality = "Bilateral";
     }
 
     // ENE-driven margin logic
@@ -47,13 +50,21 @@ export function generateRecommendation(data: any): Recommendation {
 
     if (eneStatus === "Macroscopic" || eneStatus === "Present (unspecified)") {
       ctvMargin = "10 mm";
-      elective += " + consider adjacent inferior nodal level";
     }
 
-    // Retropharyngeal node logic
+    // Retropharyngeal logic
     if (advancedN || enePresent) {
-      rpn = "Bilateral retropharyngeal nodes";
+      rpnIncluded = true;
+      laterality = "Bilateral";
     }
+
+    if (rpnIncluded) {
+      includedLevels.push("RPN");
+    }
+
+    const electiveText = `${laterality} levels ${includedLevels.join(
+      ", "
+    )}`;
 
     return {
       summary:
@@ -62,11 +73,13 @@ export function generateRecommendation(data: any): Recommendation {
         "All gross primary tumor and radiologically involved nodes.",
       ctv:
         `GTV + ${ctvMargin} anatomically trimmed respecting air and bone.`,
-      elective: `${elective} + ${rpn}`,
+      electiveText,
+      includedLevels,
+      laterality,
       ptv:
         "CTV + 3–5 mm depending on immobilization accuracy.",
       explanation:
-        "Oropharynx tumors have predictable retropharyngeal drainage. Advanced N stage or ENE increases risk of bilateral RPN involvement. ENE expands microscopic spread risk beyond capsule, requiring larger CTV margin.",
+        "Oropharynx tumors have predictable retropharyngeal drainage. Advanced N stage or ENE increases bilateral nodal and RPN risk. ENE expands microscopic spread risk beyond capsule.",
       citations: [
         {
           organization: "EORTC",
@@ -83,7 +96,9 @@ export function generateRecommendation(data: any): Recommendation {
     summary: "No rule matched.",
     gtv: "",
     ctv: "",
-    elective: "",
+    electiveText: "",
+    includedLevels: [],
+    laterality: "Ipsilateral",
     ptv: "",
     explanation: "No structured rule triggered.",
     citations: [ICRU],
