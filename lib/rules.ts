@@ -14,7 +14,7 @@ export type Recommendation = {
 };
 
 export function generateRecommendation(data: any): Recommendation {
-  const { site, subsite, tStage, nStage } = data;
+  const { site, subsite, nStage, eneStatus } = data;
 
   const ICRU = {
     organization: "ICRU",
@@ -23,119 +23,53 @@ export function generateRecommendation(data: any): Recommendation {
     evidence: "HIGH" as const,
   };
 
-  if (site === "Head & Neck") {
+  if (site === "Head & Neck" && subsite === "Oropharynx") {
 
-    // OROPHARYNX
-    if (subsite === "Oropharynx") {
-      if (nStage?.includes("N2")) {
-        return {
-          summary:
-            "Oropharynx with advanced nodal disease — bilateral elective neck coverage recommended.",
-          gtv:
-            "All gross primary and nodal disease.",
-          ctv:
-            "GTV + 5–10 mm anatomically trimmed.",
-          elective:
-            "Ipsilateral levels II–IV + contralateral II–III.",
-          ptv:
-            "CTV + 3–5 mm.",
-          explanation:
-            "Oropharynx tumors have high bilateral nodal spread risk. N2 stage warrants bilateral elective coverage per EORTC atlas.",
-          citations: [
-            {
-              organization: "EORTC",
-              title: "Head & Neck Nodal Level Atlas",
-              year: 2018,
-              evidence: "HIGH",
-            },
-            ICRU,
-          ],
-        };
-      }
+    let ctvMargin = "5–7 mm";
+    let elective = "Ipsilateral levels II–IV";
+
+    // Advanced nodal stage
+    if (nStage?.includes("N2")) {
+      elective = "Ipsilateral II–IV + contralateral II–III";
     }
 
-    // ORAL CAVITY
-    if (subsite === "Oral Cavity") {
-      if (nStage?.includes("N0")) {
-        return {
-          summary:
-            "Lateralized oral cavity primary — ipsilateral elective coverage.",
-          gtv:
-            "Primary tumor bed ± involved nodes.",
-          ctv:
-            "GTV + 5 mm anatomically constrained.",
-          elective:
-            "Ipsilateral levels I–III.",
-          ptv:
-            "CTV + 3–5 mm.",
-          explanation:
-            "Oral cavity tumors drain primarily to ipsilateral levels I–III. N0 disease does not mandate bilateral coverage.",
-          citations: [
-            {
-              organization: "EORTC",
-              title: "Head & Neck Nodal Level Atlas",
-              year: 2018,
-              evidence: "HIGH",
-            },
-            ICRU,
-          ],
-        };
-      }
+    // ENE Logic
+    if (eneStatus === "Microscopic") {
+      ctvMargin = "7–10 mm";
     }
 
-    // LARYNX
-    if (subsite === "Larynx") {
-      return {
-        summary:
-          "Laryngeal primary — level II–IV coverage depending on nodal status.",
-        gtv:
-          "Primary laryngeal tumor ± involved nodes.",
-        ctv:
-          "GTV + 5–10 mm respecting cartilage boundaries.",
-        elective:
-          "Levels II–IV (bilateral if supraglottic).",
-        ptv:
-          "CTV + 3–5 mm.",
-        explanation:
-          "Supraglottic tumors have bilateral nodal drainage. Glottic tumors have limited nodal spread unless advanced.",
-        citations: [
-          {
-            organization: "EORTC",
-            title: "Head & Neck Nodal Level Atlas",
-            year: 2018,
-            evidence: "HIGH",
-          },
-          ICRU,
-        ],
-      };
+    if (eneStatus === "Macroscopic") {
+      ctvMargin = "10 mm";
+      elective += " + consider adjacent inferior nodal level";
     }
 
-    // NASOPHARYNX
-    if (subsite === "Nasopharynx") {
-      return {
-        summary:
-          "Nasopharynx — routine bilateral nodal coverage required.",
-        gtv:
-          "Primary + involved retropharyngeal nodes.",
-        ctv:
-          "GTV + 5–10 mm including parapharyngeal space.",
-        elective:
-          "Bilateral levels II–V + retropharyngeal nodes.",
-        ptv:
-          "CTV + 3–5 mm.",
-        explanation:
-          "Nasopharynx has predictable bilateral nodal spread including retropharyngeal nodes.",
-        citations: [
-          {
-            organization: "EORTC",
-            title: "Head & Neck Nodal Level Atlas",
-            year: 2018,
-            evidence: "HIGH",
-          },
-          ICRU,
-        ],
-      };
+    if (eneStatus === "Present (unspecified)") {
+      ctvMargin = "10 mm";
+      elective += " + consider adjacent inferior nodal level";
     }
+
+    return {
+      summary:
+        "Oropharynx — nodal coverage adjusted based on ENE and stage.",
+      gtv:
+        "All gross primary tumor and radiologically involved nodes.",
+      ctv:
+        `GTV + ${ctvMargin} anatomically trimmed respecting air and bone.`,
+      elective,
+      ptv:
+        "CTV + 3–5 mm depending on immobilization accuracy.",
+      explanation:
+        "Oropharynx tumors carry bilateral nodal risk in advanced N stage. ENE increases risk of microscopic spread beyond capsule, warranting expanded CTV margins. Unspecified ENE is treated conservatively as macroscopic.",
+      citations: [
+        {
+          organization: "EORTC",
+          title: "Head & Neck Nodal Level Atlas",
+          year: 2018,
+          evidence: "HIGH",
+        },
+        ICRU,
+      ],
+    };
   }
 
   return {
@@ -144,8 +78,7 @@ export function generateRecommendation(data: any): Recommendation {
     ctv: "",
     elective: "",
     ptv: "",
-    explanation:
-      "No structured rule triggered.",
+    explanation: "No structured rule triggered.",
     citations: [ICRU],
   };
 }
