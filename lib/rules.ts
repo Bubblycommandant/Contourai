@@ -4,6 +4,7 @@ export type RiskLevel = "LOW" | "INTERMEDIATE" | "HIGH";
 
 export type Recommendation = {
   summary: string;
+  stageGroup: string;
   gtv: string;
   ctv: string;
   electiveText: string;
@@ -21,6 +22,34 @@ export type Recommendation = {
     evidence: "HIGH" | "MEDIUM" | "LOW";
   }[];
 };
+
+/* ================= AJCC STAGING HELPERS ================= */
+
+function stageOropharynxHPVPositive(t: string, n: string): string {
+  if (t === "T1" && (n === "N0" || n === "N1")) return "Stage I";
+  if (t === "T2" && (n === "N0" || n === "N1")) return "Stage I";
+  if ((t === "T3" && n === "N0") || n === "N2") return "Stage II";
+  if (t === "T4" || n === "N3") return "Stage III";
+  return "Stage Uncertain";
+}
+
+function stageOropharynxHPVNegative(t: string, n: string): string {
+  if (t === "T1" && n === "N0") return "Stage I";
+  if (t === "T2" && n === "N0") return "Stage II";
+  if (t === "T3" || n === "N1") return "Stage III";
+  if (t === "T4" || n === "N2" || n === "N3") return "Stage IVA";
+  return "Stage Uncertain";
+}
+
+function stageOralCavity(t: string, n: string): string {
+  if (t === "T1" && n === "N0") return "Stage I";
+  if (t === "T2" && n === "N0") return "Stage II";
+  if (t === "T3" || n === "N1") return "Stage III";
+  if (t === "T4" || n === "N2" || n === "N3") return "Stage IVA";
+  return "Stage Uncertain";
+}
+
+/* ================= MAIN ENGINE ================= */
 
 export function generateRecommendation(data: any): Recommendation {
   const {
@@ -44,12 +73,14 @@ export function generateRecommendation(data: any): Recommendation {
     evidence: "HIGH" as const,
   };
 
-  /* ===============================
-     OROPHARYNX LOGIC (unchanged)
-  =============================== */
+  /* ================= OROPHARYNX ================= */
 
   if (site === "Head & Neck" && subsite === "Oropharynx") {
-    let ctvMargin = "5–7 mm";
+    let stageGroup =
+      hpvStatus === "Positive"
+        ? stageOropharynxHPVPositive(tStage, nStage)
+        : stageOropharynxHPVNegative(tStage, nStage);
+
     let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
     let includedLevels = ["IIa", "IIb", "III", "IV"];
     let riskLevel: RiskLevel = "LOW";
@@ -78,22 +109,17 @@ export function generateRecommendation(data: any): Recommendation {
       laterality = "Bilateral";
     }
 
-    if (advancedN) {
+    if (advancedN || enePresent || advancedT) {
       laterality = "Bilateral";
-      riskLevel = "INTERMEDIATE";
-    }
-
-    if (enePresent) {
-      ctvMargin = "10 mm";
       riskLevel = "HIGH";
-      laterality = "Bilateral";
       includedLevels.push("RPN");
     }
 
     return {
       summary: "Oropharynx logic applied.",
+      stageGroup,
       gtv: "All gross tumor and involved nodes.",
-      ctv: `GTV + ${ctvMargin} anatomically trimmed.`,
+      ctv: "GTV + 5–10 mm anatomically trimmed.",
       electiveText: `${laterality} levels ${includedLevels.join(", ")}`,
       includedLevels,
       levelBoundaries: {},
@@ -102,11 +128,11 @@ export function generateRecommendation(data: any): Recommendation {
       deepExtensions: [],
       riskLevel,
       explanation:
-        "HPV and lateralization influence bilaterality. ENE escalates margin and risk.",
+        "AJCC stage calculated automatically based on HPV status and TN category.",
       citations: [
         {
-          organization: "EORTC",
-          title: "Head & Neck Nodal Atlas",
+          organization: "AJCC",
+          title: "AJCC 8th Edition Staging Manual",
           year: 2018,
           evidence: "HIGH",
         },
@@ -115,47 +141,25 @@ export function generateRecommendation(data: any): Recommendation {
     };
   }
 
-  /* ===============================
-     ORAL CAVITY LOGIC (NEW)
-  =============================== */
+  /* ================= ORAL CAVITY ================= */
 
   if (site === "Head & Neck" && subsite === "Oral Cavity") {
-    let ctvMargin = "5 mm";
+    let stageGroup = stageOralCavity(tStage, nStage);
     let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
     let includedLevels = ["I", "II", "III"];
     let riskLevel: RiskLevel = "LOW";
 
-    const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
     const advancedN = nStage?.includes("N2");
     const enePresent =
       eneStatus === "Microscopic" ||
       eneStatus === "Macroscopic" ||
       eneStatus === "Present (unspecified)";
-
     const highDOI = doi && Number(doi) >= 10;
 
-    // Margin logic
-    if (marginStatus === "Close (<5 mm)") {
-      ctvMargin = "7–10 mm";
+    if (marginStatus === "Positive" || highDOI || pni === "Yes" || lvi === "Yes") {
       riskLevel = "INTERMEDIATE";
     }
 
-    if (marginStatus === "Positive") {
-      ctvMargin = "10 mm";
-      riskLevel = "HIGH";
-    }
-
-    // DOI logic
-    if (highDOI) {
-      riskLevel = "INTERMEDIATE";
-    }
-
-    // PNI/LVI escalation
-    if (pni === "Yes" || lvi === "Yes") {
-      riskLevel = "INTERMEDIATE";
-    }
-
-    // Nodal burden
     if (advancedN || enePresent) {
       laterality = "Bilateral";
       includedLevels = ["I", "II", "III", "IV"];
@@ -164,8 +168,9 @@ export function generateRecommendation(data: any): Recommendation {
 
     return {
       summary: "Oral cavity logic applied.",
-      gtv: "Post-operative bed and any residual disease.",
-      ctv: `GTV + ${ctvMargin} including high-risk surgical bed.`,
+      stageGroup,
+      gtv: "Post-operative bed and residual disease.",
+      ctv: "GTV + 5–10 mm based on risk factors.",
       electiveText: `${laterality} levels ${includedLevels.join(", ")}`,
       includedLevels,
       levelBoundaries: {},
@@ -174,12 +179,12 @@ export function generateRecommendation(data: any): Recommendation {
       deepExtensions: [],
       riskLevel,
       explanation:
-        "Margins, DOI ≥10 mm, PNI/LVI and ENE escalate risk and may mandate bilateral coverage.",
+        "AJCC stage automatically calculated for oral cavity based on T and N category.",
       citations: [
         {
-          organization: "NCCN",
-          title: "Head & Neck Guidelines",
-          year: 2024,
+          organization: "AJCC",
+          title: "AJCC 8th Edition Staging Manual",
+          year: 2018,
           evidence: "HIGH",
         },
         ICRU,
@@ -189,6 +194,7 @@ export function generateRecommendation(data: any): Recommendation {
 
   return {
     summary: "No rule matched.",
+    stageGroup: "",
     gtv: "",
     ctv: "",
     electiveText: "",
