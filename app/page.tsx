@@ -19,105 +19,133 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
-        ContourAI – Oropharynx Structured Engine
-      </h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#eef2f7",
+        padding: 40,
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      {/* HEADER */}
+      <div style={{ marginBottom: 30 }}>
+        <h1 style={{ fontSize: 30, fontWeight: 700, color: "#0f172a" }}>
+          ContourAI
+        </h1>
+        <p style={{ color: "#475569", marginTop: 4 }}>
+          Oropharynx Contouring Decision Support Engine
+        </p>
+      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 20 }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 2fr 1fr",
+          gap: 24,
+        }}
+      >
         {/* LEFT PANEL */}
-        <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
-          <h2>Case Input</h2>
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>Case Input</h2>
 
-          <select
+          <Label>Select Site</Label>
+          <Select
             value={form.site}
             onChange={(e) => setForm({ ...form, site: e.target.value })}
-            style={{ width: "100%", marginTop: 10 }}
           >
             <option value="">Select Site</option>
             <option>Head & Neck</option>
-          </select>
+          </Select>
 
           {form.site === "Head & Neck" && (
             <>
-              <select
+              <Label>Subsite</Label>
+              <Select
                 value={form.subsite}
                 onChange={(e) =>
                   setForm({ ...form, subsite: e.target.value })
                 }
-                style={{ width: "100%", marginTop: 10 }}
               >
                 <option value="">Select Subsite</option>
                 <option>Oropharynx</option>
-              </select>
+              </Select>
 
-              <input
-                placeholder="T Stage (e.g., T4)"
+              <Label>T Stage</Label>
+              <Input
+                placeholder="e.g., T4"
                 value={form.tStage}
                 onChange={(e) =>
                   setForm({ ...form, tStage: e.target.value })
                 }
-                style={{ width: "100%", marginTop: 10 }}
               />
 
-              <input
-                placeholder="N Stage (e.g., N2b)"
+              <Label>N Stage</Label>
+              <Input
+                placeholder="e.g., N2b"
                 value={form.nStage}
                 onChange={(e) =>
                   setForm({ ...form, nStage: e.target.value })
                 }
-                style={{ width: "100%", marginTop: 10 }}
               />
 
-              <select
+              <Label>ENE Status</Label>
+              <Select
                 value={form.eneStatus}
                 onChange={(e) =>
                   setForm({ ...form, eneStatus: e.target.value })
                 }
-                style={{ width: "100%", marginTop: 10 }}
               >
                 <option>Not Present</option>
                 <option>Microscopic</option>
                 <option>Macroscopic</option>
                 <option>Present (unspecified)</option>
-              </select>
+              </Select>
             </>
           )}
 
-          <button
-            onClick={handleGenerate}
-            style={{
-              marginTop: 15,
-              padding: 10,
-              width: "100%",
-              backgroundColor: "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-            }}
-          >
-            Generate
+          <button style={primaryButton} onClick={handleGenerate}>
+            Generate Recommendation
           </button>
         </div>
 
         {/* CENTER PANEL */}
-        <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
-          <h2>Recommendation</h2>
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>Recommendation</h2>
+
+          {!result && (
+            <p style={{ color: "#64748b" }}>
+              Enter case parameters and generate recommendation.
+            </p>
+          )}
 
           {result && (
             <>
-              <p><strong>Summary:</strong> {result.summary}</p>
-              <p><strong>GTV:</strong> {result.gtv}</p>
-              <p><strong>CTV:</strong> {result.ctv}</p>
-              <p><strong>Elective:</strong> {result.electiveText}</p>
-              <p><strong>PTV:</strong> {result.ptv}</p>
+              <HeaderBlock result={result} />
 
-              <details style={{ marginTop: 15 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-                  Structured Levels
+              <ClinicalRow title="GTV" value={result.gtv} />
+              <ClinicalRow title="CTV" value={result.ctv} />
+              <ClinicalRow title="Elective" value={result.electiveText} />
+              <ClinicalRow title="PTV" value={result.ptv} />
+
+              {result.deepExtensions.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <h3 style={{ fontSize: 16, marginBottom: 8 }}>
+                    Deep Space Extensions
+                  </h3>
+                  <ul style={{ paddingLeft: 18 }}>
+                    {result.deepExtensions.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <details style={detailsStyle}>
+                <summary style={summaryStyle}>
+                  Structured Nodal Levels
                 </summary>
-                <pre style={{ fontSize: 12 }}>
+                <pre style={codeBlock}>
 {JSON.stringify(
   {
     laterality: result.laterality,
@@ -129,11 +157,11 @@ export default function Home() {
                 </pre>
               </details>
 
-              <details style={{ marginTop: 15 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+              <details style={detailsStyle}>
+                <summary style={summaryStyle}>
                   Anatomical Boundaries
                 </summary>
-                <pre style={{ fontSize: 12 }}>
+                <pre style={codeBlock}>
 {JSON.stringify(result.levelBoundaries, null, 2)}
                 </pre>
               </details>
@@ -142,20 +170,146 @@ export default function Home() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
-          <h2>Citations</h2>
-          {result && (
-            <ul>
-              {result.citations.map((c, i) => (
-                <li key={i}>
-                  {c.organization} – {c.title} ({c.year})
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>Evidence & Sources</h2>
 
+          {result &&
+            result.citations.map((c, i) => (
+              <div key={i} style={citationBlock}>
+                <strong>{c.organization}</strong>
+                <div style={{ fontSize: 14 }}>{c.title}</div>
+                <div style={{ fontSize: 13, color: "#64748b" }}>
+                  {c.year}
+                </div>
+                <span style={evidenceBadge}>{c.evidence}</span>
+              </div>
+            ))}
+        </div>
       </div>
     </div>
+  );
+}
+
+/* ======================= COMPONENTS ======================= */
+
+function HeaderBlock({ result }: { result: Recommendation }) {
+  return (
+    <div
+      style={{
+        backgroundColor: "#f1f5f9",
+        padding: 14,
+        borderRadius: 6,
+        marginBottom: 20,
+      }}
+    >
+      <strong>Summary:</strong> {result.summary}
+    </div>
+  );
+}
+
+function ClinicalRow({ title, value }: any) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <strong>{title}:</strong>
+      <div style={{ marginTop: 4 }}>{value}</div>
+    </div>
+  );
+}
+
+/* ======================= STYLES ======================= */
+
+const cardStyle = {
+  backgroundColor: "white",
+  padding: 24,
+  borderRadius: 10,
+  boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+};
+
+const sectionTitle = {
+  fontSize: 18,
+  marginBottom: 16,
+  color: "#0f172a",
+};
+
+const primaryButton = {
+  marginTop: 20,
+  padding: 12,
+  width: "100%",
+  backgroundColor: "#2563eb",
+  color: "white",
+  border: "none",
+  borderRadius: 6,
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const detailsStyle = {
+  marginTop: 20,
+};
+
+const summaryStyle = {
+  cursor: "pointer",
+  fontWeight: 600,
+  color: "#1e293b",
+};
+
+const codeBlock = {
+  marginTop: 10,
+  fontSize: 12,
+  backgroundColor: "#f8fafc",
+  padding: 12,
+  borderRadius: 6,
+};
+
+const citationBlock = {
+  marginBottom: 18,
+  padding: 12,
+  backgroundColor: "#f8fafc",
+  borderRadius: 6,
+};
+
+const evidenceBadge = {
+  marginTop: 6,
+  display: "inline-block",
+  fontSize: 12,
+  padding: "2px 8px",
+  borderRadius: 4,
+  backgroundColor: "#16a34a",
+  color: "white",
+};
+
+function Label({ children }: any) {
+  return (
+    <div style={{ marginTop: 12, marginBottom: 4, fontSize: 14 }}>
+      {children}
+    </div>
+  );
+}
+
+function Input(props: any) {
+  return (
+    <input
+      {...props}
+      style={{
+        width: "100%",
+        padding: 8,
+        borderRadius: 6,
+        border: "1px solid #cbd5e1",
+      }}
+    />
+  );
+}
+
+function Select(props: any) {
+  return (
+    <select
+      {...props}
+      style={{
+        width: "100%",
+        padding: 8,
+        borderRadius: 6,
+        border: "1px solid #cbd5e1",
+      }}
+    />
   );
 }
