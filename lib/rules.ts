@@ -1,5 +1,7 @@
 import { levelAtlas } from "./atlas";
 
+export type RiskLevel = "LOW" | "INTERMEDIATE" | "HIGH";
+
 export type Recommendation = {
   summary: string;
   gtv: string;
@@ -11,6 +13,7 @@ export type Recommendation = {
   ptv: string;
   explanation: string;
   deepExtensions: string[];
+  riskLevel: RiskLevel;
   citations: {
     organization: string;
     title: string;
@@ -30,12 +33,12 @@ export function generateRecommendation(data: any): Recommendation {
   };
 
   if (site === "Head & Neck" && subsite === "Oropharynx") {
-
     let ctvMargin = "5–7 mm";
     let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
     let includedLevels = ["IIa", "IIb", "III", "IV"];
     let deepExtensions: string[] = [];
     let rpnIncluded = false;
+    let riskLevel: RiskLevel = "LOW";
 
     const advancedN = nStage?.includes("N2");
     const enePresent =
@@ -46,14 +49,17 @@ export function generateRecommendation(data: any): Recommendation {
 
     if (advancedN) {
       laterality = "Bilateral";
+      riskLevel = "INTERMEDIATE";
     }
 
     if (eneStatus === "Microscopic") {
       ctvMargin = "7–10 mm";
+      riskLevel = "INTERMEDIATE";
     }
 
     if (eneStatus === "Macroscopic" || eneStatus === "Present (unspecified)") {
       ctvMargin = "10 mm";
+      riskLevel = "HIGH";
     }
 
     if (advancedN || enePresent) {
@@ -61,13 +67,12 @@ export function generateRecommendation(data: any): Recommendation {
       laterality = "Bilateral";
     }
 
-    if (rpnIncluded) {
-      includedLevels.push("RPN");
-    }
-
     if (advancedT) {
       deepExtensions.push("Evaluate deep muscle and fascial plane spread");
+      riskLevel = "HIGH";
     }
+
+    if (rpnIncluded) includedLevels.push("RPN");
 
     const levelBoundaries: Record<string, any> = {};
     includedLevels.forEach(level => {
@@ -88,8 +93,9 @@ export function generateRecommendation(data: any): Recommendation {
       ptv:
         "CTV + 3–5 mm depending on immobilization accuracy.",
       deepExtensions,
+      riskLevel,
       explanation:
-        "Advanced stage and ENE modify nodal bilaterality and microscopic extension margins. Boundary metadata derived from consensus atlas.",
+        "Risk level derived from T stage, N stage and ENE status.",
       citations: [
         {
           organization: "EORTC",
@@ -112,7 +118,8 @@ export function generateRecommendation(data: any): Recommendation {
     laterality: "Ipsilateral",
     ptv: "",
     deepExtensions: [],
-    explanation: "No structured rule triggered.",
+    riskLevel: "LOW",
+    explanation: "",
     citations: [ICRU],
   };
 }
