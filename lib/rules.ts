@@ -27,39 +27,46 @@ export function generateRecommendation(data: any): Recommendation {
 
     let ctvMargin = "5–7 mm";
     let elective = "Ipsilateral levels II–IV";
+    let rpn = "Ipsilateral retropharyngeal nodes";
 
-    // Advanced nodal stage
-    if (nStage?.includes("N2")) {
+    const advancedN = nStage?.includes("N2");
+    const enePresent =
+      eneStatus === "Microscopic" ||
+      eneStatus === "Macroscopic" ||
+      eneStatus === "Present (unspecified)";
+
+    // Bilateral neck logic
+    if (advancedN) {
       elective = "Ipsilateral II–IV + contralateral II–III";
     }
 
-    // ENE Logic
+    // ENE-driven margin logic
     if (eneStatus === "Microscopic") {
       ctvMargin = "7–10 mm";
     }
 
-    if (eneStatus === "Macroscopic") {
+    if (eneStatus === "Macroscopic" || eneStatus === "Present (unspecified)") {
       ctvMargin = "10 mm";
       elective += " + consider adjacent inferior nodal level";
     }
 
-    if (eneStatus === "Present (unspecified)") {
-      ctvMargin = "10 mm";
-      elective += " + consider adjacent inferior nodal level";
+    // Retropharyngeal node logic
+    if (advancedN || enePresent) {
+      rpn = "Bilateral retropharyngeal nodes";
     }
 
     return {
       summary:
-        "Oropharynx — nodal coverage adjusted based on ENE and stage.",
+        "Oropharynx — nodal and RPN coverage adjusted based on stage and ENE.",
       gtv:
         "All gross primary tumor and radiologically involved nodes.",
       ctv:
         `GTV + ${ctvMargin} anatomically trimmed respecting air and bone.`,
-      elective,
+      elective: `${elective} + ${rpn}`,
       ptv:
         "CTV + 3–5 mm depending on immobilization accuracy.",
       explanation:
-        "Oropharynx tumors carry bilateral nodal risk in advanced N stage. ENE increases risk of microscopic spread beyond capsule, warranting expanded CTV margins. Unspecified ENE is treated conservatively as macroscopic.",
+        "Oropharynx tumors have predictable retropharyngeal drainage. Advanced N stage or ENE increases risk of bilateral RPN involvement. ENE expands microscopic spread risk beyond capsule, requiring larger CTV margin.",
       citations: [
         {
           organization: "EORTC",
