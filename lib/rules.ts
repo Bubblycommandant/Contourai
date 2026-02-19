@@ -1,9 +1,12 @@
+import { levelAtlas } from "./atlas";
+
 export type Recommendation = {
   summary: string;
   gtv: string;
   ctv: string;
   electiveText: string;
   includedLevels: string[];
+  levelBoundaries: Record<string, any>;
   laterality: "Ipsilateral" | "Bilateral";
   ptv: string;
   explanation: string;
@@ -39,15 +42,12 @@ export function generateRecommendation(data: any): Recommendation {
       eneStatus === "Microscopic" ||
       eneStatus === "Macroscopic" ||
       eneStatus === "Present (unspecified)";
-
     const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
 
-    // Bilateral nodal logic
     if (advancedN) {
       laterality = "Bilateral";
     }
 
-    // ENE-driven margin
     if (eneStatus === "Microscopic") {
       ctvMargin = "7–10 mm";
     }
@@ -56,7 +56,6 @@ export function generateRecommendation(data: any): Recommendation {
       ctvMargin = "10 mm";
     }
 
-    // Retropharyngeal logic
     if (advancedN || enePresent) {
       rpnIncluded = true;
       laterality = "Bilateral";
@@ -66,48 +65,31 @@ export function generateRecommendation(data: any): Recommendation {
       includedLevels.push("RPN");
     }
 
-    // SUBSITE-SPECIFIC DEEP LOGIC
     if (advancedT) {
-
-      if (data.oropharynxSubsite === "Base of Tongue") {
-        deepExtensions.push("Superior constrictor muscle");
-        deepExtensions.push("Parapharyngeal space");
-        deepExtensions.push("Evaluate skull base proximity");
-      }
-
-      if (data.oropharynxSubsite === "Posterior Pharyngeal Wall") {
-        deepExtensions.push("Prevertebral fascia");
-        deepExtensions.push("Retropharyngeal space expansion");
-      }
-
-      if (data.oropharynxSubsite === "Soft Palate") {
-        deepExtensions.push("Superior spread toward nasopharynx");
-        deepExtensions.push("Consider skull base inclusion");
-      }
-
-      if (data.oropharynxSubsite === "Tonsil") {
-        deepExtensions.push("Parapharyngeal fat space");
-        deepExtensions.push("Medial pterygoid muscle if advanced");
-      }
+      deepExtensions.push("Evaluate deep muscle and fascial plane spread");
     }
 
-    const electiveText = `${laterality} levels ${includedLevels.join(", ")}`;
+    const levelBoundaries: Record<string, any> = {};
+    includedLevels.forEach(level => {
+      levelBoundaries[level] = levelAtlas[level];
+    });
 
     return {
       summary:
-        "Oropharynx — nodal, ENE, and deep extension logic applied.",
+        "Oropharynx — nodal, ENE, deep extension and boundary metadata applied.",
       gtv:
         "All gross primary tumor and radiologically involved nodes.",
       ctv:
         `GTV + ${ctvMargin} anatomically trimmed.`,
-      electiveText,
+      electiveText: `${laterality} levels ${includedLevels.join(", ")}`,
       includedLevels,
+      levelBoundaries,
       laterality,
       ptv:
         "CTV + 3–5 mm depending on immobilization accuracy.",
       deepExtensions,
       explanation:
-        "Advanced T stage modifies deep muscle and fascial plane coverage. ENE increases microscopic extension risk. N stage governs bilaterality and RPN inclusion.",
+        "Advanced stage and ENE modify nodal bilaterality and microscopic extension margins. Boundary metadata derived from consensus atlas.",
       citations: [
         {
           organization: "EORTC",
@@ -126,6 +108,7 @@ export function generateRecommendation(data: any): Recommendation {
     ctv: "",
     electiveText: "",
     includedLevels: [],
+    levelBoundaries: {},
     laterality: "Ipsilateral",
     ptv: "",
     deepExtensions: [],
