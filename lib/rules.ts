@@ -31,6 +31,10 @@ export function generateRecommendation(data: any): Recommendation {
     eneStatus,
     hpvStatus,
     tumorLaterality,
+    marginStatus,
+    doi,
+    pni,
+    lvi,
   } = data;
 
   const ICRU = {
@@ -40,11 +44,14 @@ export function generateRecommendation(data: any): Recommendation {
     evidence: "HIGH" as const,
   };
 
+  /* ===============================
+     OROPHARYNX LOGIC (unchanged)
+  =============================== */
+
   if (site === "Head & Neck" && subsite === "Oropharynx") {
     let ctvMargin = "5–7 mm";
     let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
     let includedLevels = ["IIa", "IIb", "III", "IV"];
-    let deepExtensions: string[] = [];
     let riskLevel: RiskLevel = "LOW";
 
     const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
@@ -56,7 +63,6 @@ export function generateRecommendation(data: any): Recommendation {
       eneStatus === "Macroscopic" ||
       eneStatus === "Present (unspecified)";
 
-    // HPV-positive, early, lateralized logic
     if (
       hpvStatus === "Positive" &&
       tumorLaterality === "Lateralized" &&
@@ -68,7 +74,6 @@ export function generateRecommendation(data: any): Recommendation {
       riskLevel = "LOW";
     }
 
-    // Midline forces bilateral
     if (tumorLaterality === "Midline / Crossing midline") {
       laterality = "Bilateral";
     }
@@ -78,55 +83,103 @@ export function generateRecommendation(data: any): Recommendation {
       riskLevel = "INTERMEDIATE";
     }
 
-    if (eneStatus === "Microscopic") {
+    if (enePresent) {
+      ctvMargin = "10 mm";
+      riskLevel = "HIGH";
+      laterality = "Bilateral";
+      includedLevels.push("RPN");
+    }
+
+    return {
+      summary: "Oropharynx logic applied.",
+      gtv: "All gross tumor and involved nodes.",
+      ctv: `GTV + ${ctvMargin} anatomically trimmed.`,
+      electiveText: `${laterality} levels ${includedLevels.join(", ")}`,
+      includedLevels,
+      levelBoundaries: {},
+      laterality,
+      ptv: "CTV + 3–5 mm.",
+      deepExtensions: [],
+      riskLevel,
+      explanation:
+        "HPV and lateralization influence bilaterality. ENE escalates margin and risk.",
+      citations: [
+        {
+          organization: "EORTC",
+          title: "Head & Neck Nodal Atlas",
+          year: 2018,
+          evidence: "HIGH",
+        },
+        ICRU,
+      ],
+    };
+  }
+
+  /* ===============================
+     ORAL CAVITY LOGIC (NEW)
+  =============================== */
+
+  if (site === "Head & Neck" && subsite === "Oral Cavity") {
+    let ctvMargin = "5 mm";
+    let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
+    let includedLevels = ["I", "II", "III"];
+    let riskLevel: RiskLevel = "LOW";
+
+    const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
+    const advancedN = nStage?.includes("N2");
+    const enePresent =
+      eneStatus === "Microscopic" ||
+      eneStatus === "Macroscopic" ||
+      eneStatus === "Present (unspecified)";
+
+    const highDOI = doi && Number(doi) >= 10;
+
+    // Margin logic
+    if (marginStatus === "Close (<5 mm)") {
       ctvMargin = "7–10 mm";
       riskLevel = "INTERMEDIATE";
     }
 
-    if (eneStatus === "Macroscopic" || eneStatus === "Present (unspecified)") {
+    if (marginStatus === "Positive") {
       ctvMargin = "10 mm";
       riskLevel = "HIGH";
-      laterality = "Bilateral";
     }
 
-    if (advancedT) {
-      deepExtensions.push("Evaluate deep muscle and fascial plane spread");
-      riskLevel = "HIGH";
-      laterality = "Bilateral";
+    // DOI logic
+    if (highDOI) {
+      riskLevel = "INTERMEDIATE";
     }
 
-    // Add RPN if advanced or ENE
+    // PNI/LVI escalation
+    if (pni === "Yes" || lvi === "Yes") {
+      riskLevel = "INTERMEDIATE";
+    }
+
+    // Nodal burden
     if (advancedN || enePresent) {
-      includedLevels.push("RPN");
+      laterality = "Bilateral";
+      includedLevels = ["I", "II", "III", "IV"];
+      riskLevel = "HIGH";
     }
-
-    const levelBoundaries: Record<string, any> = {};
-    includedLevels.forEach(level => {
-      levelBoundaries[level] = levelAtlas[level];
-    });
 
     return {
-      summary:
-        "Oropharynx — stage, ENE, HPV and lateralization logic applied.",
-      gtv:
-        "All gross primary tumor and radiologically involved nodes.",
-      ctv:
-        `GTV + ${ctvMargin} anatomically trimmed.`,
+      summary: "Oral cavity logic applied.",
+      gtv: "Post-operative bed and any residual disease.",
+      ctv: `GTV + ${ctvMargin} including high-risk surgical bed.`,
       electiveText: `${laterality} levels ${includedLevels.join(", ")}`,
       includedLevels,
-      levelBoundaries,
+      levelBoundaries: {},
       laterality,
-      ptv:
-        "CTV + 3–5 mm depending on immobilization accuracy.",
-      deepExtensions,
+      ptv: "CTV + 3–5 mm.",
+      deepExtensions: [],
       riskLevel,
       explanation:
-        "Midline tumors or advanced features mandate bilateral coverage. Lateralized early HPV-positive tumors may allow ipsilateral-only treatment.",
+        "Margins, DOI ≥10 mm, PNI/LVI and ENE escalate risk and may mandate bilateral coverage.",
       citations: [
         {
-          organization: "EORTC",
-          title: "Head & Neck Nodal Level Atlas",
-          year: 2018,
+          organization: "NCCN",
+          title: "Head & Neck Guidelines",
+          year: 2024,
           evidence: "HIGH",
         },
         ICRU,
