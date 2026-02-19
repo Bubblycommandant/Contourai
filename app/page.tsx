@@ -25,17 +25,19 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#eef2f7", padding: 40 }}>
-      <h1 style={{ fontSize: 30, fontWeight: 700 }}>ContourAI</h1>
-      <p style={{ marginBottom: 30, color: "#475569" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#eef2f7", padding: 40, fontFamily: "system-ui" }}>
+      <h1 style={{ fontSize: 30, fontWeight: 700, marginBottom: 4 }}>
+        ContourAI
+      </h1>
+      <p style={{ color: "#475569", marginBottom: 30 }}>
         Oropharynx Contouring Decision Support Engine
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 24 }}>
 
-        {/* INPUT */}
+        {/* CASE INPUT PANEL */}
         <div style={card}>
-          <h2>Case Input</h2>
+          <h2 style={sectionTitle}>Case Input</h2>
 
           <select
             value={form.site}
@@ -58,14 +60,14 @@ export default function Home() {
               </select>
 
               <input
-                placeholder="T Stage"
+                placeholder="T Stage (e.g., T4)"
                 value={form.tStage}
                 onChange={(e) => setForm({ ...form, tStage: e.target.value })}
                 style={input}
               />
 
               <input
-                placeholder="N Stage"
+                placeholder="N Stage (e.g., N2b)"
                 value={form.nStage}
                 onChange={(e) => setForm({ ...form, nStage: e.target.value })}
                 style={input}
@@ -89,9 +91,15 @@ export default function Home() {
           </button>
         </div>
 
-        {/* RECOMMENDATION */}
+        {/* RECOMMENDATION PANEL */}
         <div style={card}>
-          <h2>Recommendation</h2>
+          <h2 style={sectionTitle}>Recommendation</h2>
+
+          {!result && (
+            <p style={{ color: "#64748b" }}>
+              Enter case parameters and generate recommendation.
+            </p>
+          )}
 
           {result && (
             <>
@@ -100,9 +108,9 @@ export default function Home() {
                 style={{
                   backgroundColor: riskColors[result.riskLevel],
                   color: "white",
-                  padding: 8,
-                  borderRadius: 4,
-                  marginBottom: 15,
+                  padding: 10,
+                  borderRadius: 6,
+                  marginBottom: 20,
                   fontWeight: 600,
                 }}
               >
@@ -114,32 +122,73 @@ export default function Home() {
               <p><strong>CTV:</strong> {result.ctv}</p>
               <p><strong>Elective:</strong> {result.electiveText}</p>
               <p><strong>PTV:</strong> {result.ptv}</p>
+
+              {result.deepExtensions.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <h3 style={{ fontSize: 16 }}>Deep Space Extensions</h3>
+                  <ul>
+                    {result.deepExtensions.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <details style={{ marginTop: 20 }}>
+                <summary style={summaryStyle}>Structured Nodal Levels</summary>
+                <pre style={codeBlock}>
+{JSON.stringify(
+  {
+    laterality: result.laterality,
+    includedLevels: result.includedLevels,
+  },
+  null,
+  2
+)}
+                </pre>
+              </details>
+
+              <details style={{ marginTop: 20 }}>
+                <summary style={summaryStyle}>Anatomical Boundaries</summary>
+                <pre style={codeBlock}>
+{JSON.stringify(result.levelBoundaries, null, 2)}
+                </pre>
+              </details>
             </>
           )}
         </div>
 
-        {/* CITATIONS */}
+        {/* EVIDENCE PANEL */}
         <div style={card}>
-          <h2>Evidence</h2>
+          <h2 style={sectionTitle}>Evidence & Sources</h2>
           {result &&
             result.citations.map((c, i) => (
-              <div key={i} style={{ marginBottom: 10 }}>
+              <div key={i} style={citation}>
                 <strong>{c.organization}</strong>
                 <div>{c.title}</div>
-                <small>{c.year}</small>
+                <div style={{ fontSize: 13 }}>{c.year}</div>
+                <span style={badge}>{c.evidence}</span>
               </div>
             ))}
         </div>
+
       </div>
     </div>
   );
 }
+
+/* ================= STYLES ================= */
 
 const card = {
   backgroundColor: "white",
   padding: 24,
   borderRadius: 10,
   boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+};
+
+const sectionTitle = {
+  fontSize: 18,
+  marginBottom: 16,
 };
 
 const input = {
@@ -159,4 +208,34 @@ const button = {
   border: "none",
   borderRadius: 6,
   fontWeight: 600,
+};
+
+const summaryStyle = {
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
+const codeBlock = {
+  marginTop: 10,
+  fontSize: 12,
+  backgroundColor: "#f8fafc",
+  padding: 12,
+  borderRadius: 6,
+};
+
+const citation = {
+  marginBottom: 15,
+  padding: 12,
+  backgroundColor: "#f8fafc",
+  borderRadius: 6,
+};
+
+const badge = {
+  marginTop: 6,
+  display: "inline-block",
+  fontSize: 12,
+  padding: "2px 8px",
+  borderRadius: 4,
+  backgroundColor: "#16a34a",
+  color: "white",
 };
