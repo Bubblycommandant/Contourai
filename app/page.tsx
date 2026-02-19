@@ -35,6 +35,7 @@ export default function Home() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 24 }}>
 
+        {/* LEFT PANEL */}
         <div style={card}>
           <h2>Case Input</h2>
 
@@ -59,14 +60,14 @@ export default function Home() {
               </select>
 
               <input
-                placeholder="T Stage"
+                placeholder="T Stage (e.g. T2)"
                 value={form.tStage}
                 onChange={(e) => setForm({ ...form, tStage: e.target.value })}
                 style={input}
               />
 
               <input
-                placeholder="N Stage"
+                placeholder="N Stage (e.g. N1)"
                 value={form.nStage}
                 onChange={(e) => setForm({ ...form, nStage: e.target.value })}
                 style={input}
@@ -93,6 +94,7 @@ export default function Home() {
                 <option>Negative</option>
               </select>
 
+              {/* 🔥 Tumor Laterality */}
               <select
                 value={form.tumorLaterality}
                 onChange={(e) =>
@@ -111,6 +113,7 @@ export default function Home() {
           </button>
         </div>
 
+        {/* CENTER PANEL */}
         <div style={card}>
           <h2>Recommendation</h2>
 
@@ -130,19 +133,47 @@ export default function Home() {
               </div>
 
               <p><strong>Summary:</strong> {result.summary}</p>
+              <p><strong>GTV:</strong> {result.gtv}</p>
+              <p><strong>CTV:</strong> {result.ctv}</p>
               <p><strong>Elective:</strong> {result.electiveText}</p>
+              <p><strong>PTV:</strong> {result.ptv}</p>
+
+              {result.deepExtensions.length > 0 && (
+                <>
+                  <h4>Deep Space Extensions</h4>
+                  <ul>
+                    {result.deepExtensions.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           )}
         </div>
 
+        {/* RIGHT PANEL */}
         <div style={card}>
-          <h2>Evidence</h2>
+          <h2>Evidence & Sources</h2>
           {result &&
             result.citations.map((c, i) => (
-              <div key={i}>
+              <div key={i} style={{ marginBottom: 15 }}>
                 <strong>{c.organization}</strong>
                 <div>{c.title}</div>
                 <div>{c.year}</div>
+                <div
+                  style={{
+                    backgroundColor: "#16a34a",
+                    color: "white",
+                    display: "inline-block",
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    marginTop: 5,
+                    fontSize: 12,
+                  }}
+                >
+                  {c.evidence}
+                </div>
               </div>
             ))}
         </div>
