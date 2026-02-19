@@ -7,8 +7,8 @@ export default function Home() {
   const [form, setForm] = useState({
     site: "",
     subsite: "",
-    tStage: "",
     nStage: "",
+    eneStatus: "Not Present",
   });
 
   const [result, setResult] = useState<Recommendation | null>(null);
@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
-        ContourAI – Clinical Decision Support
+        ContourAI – Head & Neck Module
       </h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 20 }}>
@@ -39,38 +39,41 @@ export default function Home() {
           </select>
 
           {form.site === "Head & Neck" && (
-            <select
-              value={form.subsite}
-              onChange={(e) =>
-                setForm({ ...form, subsite: e.target.value })
-              }
-              style={{ width: "100%", marginTop: 10 }}
-            >
-              <option value="">Select Subsite</option>
-              <option>Oropharynx</option>
-              <option>Oral Cavity</option>
-              <option>Larynx</option>
-              <option>Nasopharynx</option>
-            </select>
+            <>
+              <select
+                value={form.subsite}
+                onChange={(e) =>
+                  setForm({ ...form, subsite: e.target.value })
+                }
+                style={{ width: "100%", marginTop: 10 }}
+              >
+                <option value="">Select Subsite</option>
+                <option>Oropharynx</option>
+              </select>
+
+              <input
+                placeholder="N Stage (e.g., N2b)"
+                value={form.nStage}
+                onChange={(e) =>
+                  setForm({ ...form, nStage: e.target.value })
+                }
+                style={{ width: "100%", marginTop: 10 }}
+              />
+
+              <select
+                value={form.eneStatus}
+                onChange={(e) =>
+                  setForm({ ...form, eneStatus: e.target.value })
+                }
+                style={{ width: "100%", marginTop: 10 }}
+              >
+                <option>Not Present</option>
+                <option>Microscopic</option>
+                <option>Macroscopic</option>
+                <option>Present (unspecified)</option>
+              </select>
+            </>
           )}
-
-          <input
-            placeholder="T Stage"
-            value={form.tStage}
-            onChange={(e) =>
-              setForm({ ...form, tStage: e.target.value })
-            }
-            style={{ width: "100%", marginTop: 10 }}
-          />
-
-          <input
-            placeholder="N Stage"
-            value={form.nStage}
-            onChange={(e) =>
-              setForm({ ...form, nStage: e.target.value })
-            }
-            style={{ width: "100%", marginTop: 10 }}
-          />
 
           <button
             onClick={handleGenerate}
@@ -132,10 +135,7 @@ export default function Home() {
                       fontSize: 12,
                       padding: "2px 6px",
                       borderRadius: 4,
-                      backgroundColor:
-                        c.evidence === "HIGH"
-                          ? "#16a34a"
-                          : "#f59e0b",
+                      backgroundColor: "#16a34a",
                       color: "white",
                     }}
                   >
