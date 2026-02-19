@@ -11,9 +11,9 @@ export type Recommendation = {
   levelBoundaries: Record<string, any>;
   laterality: "Ipsilateral" | "Bilateral";
   ptv: string;
-  explanation: string;
   deepExtensions: string[];
   riskLevel: RiskLevel;
+  explanation: string;
   citations: {
     organization: string;
     title: string;
@@ -23,7 +23,15 @@ export type Recommendation = {
 };
 
 export function generateRecommendation(data: any): Recommendation {
-  const { site, subsite, tStage, nStage, eneStatus, hpvStatus } = data;
+  const {
+    site,
+    subsite,
+    tStage,
+    nStage,
+    eneStatus,
+    hpvStatus,
+    tumorLaterality,
+  } = data;
 
   const ICRU = {
     organization: "ICRU",
@@ -37,30 +45,39 @@ export function generateRecommendation(data: any): Recommendation {
     let laterality: "Ipsilateral" | "Bilateral" = "Ipsilateral";
     let includedLevels = ["IIa", "IIb", "III", "IV"];
     let deepExtensions: string[] = [];
-    let rpnIncluded = false;
     let riskLevel: RiskLevel = "LOW";
 
     const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
     const advancedN = nStage?.includes("N2");
+    const earlyN = nStage?.includes("N0") || nStage?.includes("N1");
+
     const enePresent =
       eneStatus === "Microscopic" ||
       eneStatus === "Macroscopic" ||
       eneStatus === "Present (unspecified)";
-    const earlyN = nStage?.includes("N0") || nStage?.includes("N1");
 
-    // HPV Influence on bilaterality in early disease
-    if (hpvStatus === "Positive" && earlyN && !enePresent) {
+    // HPV-positive, early, lateralized logic
+    if (
+      hpvStatus === "Positive" &&
+      tumorLaterality === "Lateralized" &&
+      earlyN &&
+      !enePresent &&
+      !advancedT
+    ) {
       laterality = "Ipsilateral";
       riskLevel = "LOW";
     }
 
-    // Standard nodal logic
+    // Midline forces bilateral
+    if (tumorLaterality === "Midline / Crossing midline") {
+      laterality = "Bilateral";
+    }
+
     if (advancedN) {
       laterality = "Bilateral";
       riskLevel = "INTERMEDIATE";
     }
 
-    // ENE logic
     if (eneStatus === "Microscopic") {
       ctvMargin = "7–10 mm";
       riskLevel = "INTERMEDIATE";
@@ -69,20 +86,19 @@ export function generateRecommendation(data: any): Recommendation {
     if (eneStatus === "Macroscopic" || eneStatus === "Present (unspecified)") {
       ctvMargin = "10 mm";
       riskLevel = "HIGH";
-    }
-
-    // Retropharyngeal logic
-    if (advancedN || enePresent) {
-      rpnIncluded = true;
       laterality = "Bilateral";
     }
 
     if (advancedT) {
       deepExtensions.push("Evaluate deep muscle and fascial plane spread");
       riskLevel = "HIGH";
+      laterality = "Bilateral";
     }
 
-    if (rpnIncluded) includedLevels.push("RPN");
+    // Add RPN if advanced or ENE
+    if (advancedN || enePresent) {
+      includedLevels.push("RPN");
+    }
 
     const levelBoundaries: Record<string, any> = {};
     includedLevels.forEach(level => {
@@ -91,7 +107,7 @@ export function generateRecommendation(data: any): Recommendation {
 
     return {
       summary:
-        "Oropharynx — stage, ENE, HPV and anatomical metadata applied.",
+        "Oropharynx — stage, ENE, HPV and lateralization logic applied.",
       gtv:
         "All gross primary tumor and radiologically involved nodes.",
       ctv:
@@ -105,7 +121,7 @@ export function generateRecommendation(data: any): Recommendation {
       deepExtensions,
       riskLevel,
       explanation:
-        "Risk level derived from T stage, N stage, ENE status and HPV status. HPV-positive early disease may allow ipsilateral coverage.",
+        "Midline tumors or advanced features mandate bilateral coverage. Lateralized early HPV-positive tumors may allow ipsilateral-only treatment.",
       citations: [
         {
           organization: "EORTC",
