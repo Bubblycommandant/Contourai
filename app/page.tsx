@@ -25,19 +25,17 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#eef2f7", padding: 40, fontFamily: "system-ui" }}>
-      <h1 style={{ fontSize: 30, fontWeight: 700, marginBottom: 4 }}>
-        ContourAI
-      </h1>
-      <p style={{ color: "#475569", marginBottom: 30 }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#eef2f7", padding: 40 }}>
+      <h1 style={{ fontSize: 30, fontWeight: 700 }}>ContourAI</h1>
+      <p style={{ marginBottom: 30, color: "#475569" }}>
         Oropharynx Contouring Decision Support Engine
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 24 }}>
 
-        {/* CASE INPUT PANEL */}
+        {/* CASE INPUT */}
         <div style={card}>
-          <h2 style={sectionTitle}>Case Input</h2>
+          <h2>Case Input</h2>
 
           <select
             value={form.site}
@@ -60,14 +58,14 @@ export default function Home() {
               </select>
 
               <input
-                placeholder="T Stage (e.g., T4)"
+                placeholder="T Stage"
                 value={form.tStage}
                 onChange={(e) => setForm({ ...form, tStage: e.target.value })}
                 style={input}
               />
 
               <input
-                placeholder="N Stage (e.g., N2b)"
+                placeholder="N Stage"
                 value={form.nStage}
                 onChange={(e) => setForm({ ...form, nStage: e.target.value })}
                 style={input}
@@ -91,9 +89,9 @@ export default function Home() {
           </button>
         </div>
 
-        {/* RECOMMENDATION PANEL */}
+        {/* RECOMMENDATION */}
         <div style={card}>
-          <h2 style={sectionTitle}>Recommendation</h2>
+          <h2>Recommendation</h2>
 
           {!result && (
             <p style={{ color: "#64748b" }}>
@@ -103,7 +101,7 @@ export default function Home() {
 
           {result && (
             <>
-              {/* Risk Strip */}
+              {/* RISK STRIP */}
               <div
                 style={{
                   backgroundColor: riskColors[result.riskLevel],
@@ -125,7 +123,7 @@ export default function Home() {
 
               {result.deepExtensions.length > 0 && (
                 <div style={{ marginTop: 20 }}>
-                  <h3 style={{ fontSize: 16 }}>Deep Space Extensions</h3>
+                  <h3>Deep Space Extensions</h3>
                   <ul>
                     {result.deepExtensions.map((d, i) => (
                       <li key={i}>{d}</li>
@@ -135,7 +133,9 @@ export default function Home() {
               )}
 
               <details style={{ marginTop: 20 }}>
-                <summary style={summaryStyle}>Structured Nodal Levels</summary>
+                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                  Structured Nodal Levels
+                </summary>
                 <pre style={codeBlock}>
 {JSON.stringify(
   {
@@ -149,7 +149,9 @@ export default function Home() {
               </details>
 
               <details style={{ marginTop: 20 }}>
-                <summary style={summaryStyle}>Anatomical Boundaries</summary>
+                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+                  Anatomical Boundaries
+                </summary>
                 <pre style={codeBlock}>
 {JSON.stringify(result.levelBoundaries, null, 2)}
                 </pre>
@@ -158,9 +160,9 @@ export default function Home() {
           )}
         </div>
 
-        {/* EVIDENCE PANEL */}
+        {/* EVIDENCE */}
         <div style={card}>
-          <h2 style={sectionTitle}>Evidence & Sources</h2>
+          <h2>Evidence & Sources</h2>
           {result &&
             result.citations.map((c, i) => (
               <div key={i} style={citation}>
@@ -171,24 +173,18 @@ export default function Home() {
               </div>
             ))}
         </div>
-
       </div>
     </div>
   );
 }
 
-/* ================= STYLES ================= */
+/* STYLES */
 
 const card = {
   backgroundColor: "white",
   padding: 24,
   borderRadius: 10,
   boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-};
-
-const sectionTitle = {
-  fontSize: 18,
-  marginBottom: 16,
 };
 
 const input = {
@@ -207,11 +203,6 @@ const button = {
   color: "white",
   border: "none",
   borderRadius: 6,
-  fontWeight: 600,
-};
-
-const summaryStyle = {
-  cursor: "pointer",
   fontWeight: 600,
 };
 
