@@ -12,6 +12,10 @@ export default function Home() {
     eneStatus: "Not Present",
     hpvStatus: "Unknown",
     tumorLaterality: "Lateralized",
+    marginStatus: "",
+    doi: "",
+    pni: "",
+    lvi: "",
   });
 
   const [result, setResult] = useState<Recommendation | null>(null);
@@ -30,7 +34,7 @@ export default function Home() {
     <div style={{ minHeight: "100vh", backgroundColor: "#eef2f7", padding: 40 }}>
       <h1 style={{ fontSize: 30, fontWeight: 700 }}>ContourAI</h1>
       <p style={{ marginBottom: 30, color: "#475569" }}>
-        Oropharynx Contouring Decision Support Engine
+        Head & Neck Contouring Decision Support Engine
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 24 }}>
@@ -57,6 +61,7 @@ export default function Home() {
               >
                 <option value="">Select Subsite</option>
                 <option>Oropharynx</option>
+                <option>Oral Cavity</option>
               </select>
 
               <input
@@ -84,27 +89,84 @@ export default function Home() {
                 <option>Present (unspecified)</option>
               </select>
 
-              <select
-                value={form.hpvStatus}
-                onChange={(e) => setForm({ ...form, hpvStatus: e.target.value })}
-                style={input}
-              >
-                <option>Unknown</option>
-                <option>Positive</option>
-                <option>Negative</option>
-              </select>
+              {/* OROPHARYNX SPECIFIC */}
+              {form.subsite === "Oropharynx" && (
+                <>
+                  <select
+                    value={form.hpvStatus}
+                    onChange={(e) =>
+                      setForm({ ...form, hpvStatus: e.target.value })
+                    }
+                    style={input}
+                  >
+                    <option>Unknown</option>
+                    <option>Positive</option>
+                    <option>Negative</option>
+                  </select>
 
-              {/* 🔥 Tumor Laterality */}
-              <select
-                value={form.tumorLaterality}
-                onChange={(e) =>
-                  setForm({ ...form, tumorLaterality: e.target.value })
-                }
-                style={input}
-              >
-                <option>Lateralized</option>
-                <option>Midline / Crossing midline</option>
-              </select>
+                  <select
+                    value={form.tumorLaterality}
+                    onChange={(e) =>
+                      setForm({ ...form, tumorLaterality: e.target.value })
+                    }
+                    style={input}
+                  >
+                    <option>Lateralized</option>
+                    <option>Midline / Crossing midline</option>
+                  </select>
+                </>
+              )}
+
+              {/* ORAL CAVITY SPECIFIC */}
+              {form.subsite === "Oral Cavity" && (
+                <>
+                  <select
+                    value={form.marginStatus}
+                    onChange={(e) =>
+                      setForm({ ...form, marginStatus: e.target.value })
+                    }
+                    style={input}
+                  >
+                    <option value="">Margin Status</option>
+                    <option>Negative</option>
+                    <option>Close (&lt;5 mm)</option>
+                    <option>Positive</option>
+                  </select>
+
+                  <input
+                    placeholder="Depth of Invasion (mm)"
+                    value={form.doi}
+                    onChange={(e) =>
+                      setForm({ ...form, doi: e.target.value })
+                    }
+                    style={input}
+                  />
+
+                  <select
+                    value={form.pni}
+                    onChange={(e) =>
+                      setForm({ ...form, pni: e.target.value })
+                    }
+                    style={input}
+                  >
+                    <option value="">PNI</option>
+                    <option>No</option>
+                    <option>Yes</option>
+                  </select>
+
+                  <select
+                    value={form.lvi}
+                    onChange={(e) =>
+                      setForm({ ...form, lvi: e.target.value })
+                    }
+                    style={input}
+                  >
+                    <option value="">LVI</option>
+                    <option>No</option>
+                    <option>Yes</option>
+                  </select>
+                </>
+              )}
             </>
           )}
 
@@ -140,7 +202,7 @@ export default function Home() {
 
               {result.deepExtensions.length > 0 && (
                 <>
-                  <h4>Deep Space Extensions</h4>
+                  <h4>Deep Space Considerations</h4>
                   <ul>
                     {result.deepExtensions.map((d, i) => (
                       <li key={i}>{d}</li>
