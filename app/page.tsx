@@ -10,6 +10,8 @@ export default function Home() {
     tStage: "",
     nStage: "",
     eneStatus: "Not Present",
+    hpvStatus: "Unknown",
+    tumorLaterality: "Lateralized",
   });
 
   const [result, setResult] = useState<Recommendation | null>(null);
@@ -33,7 +35,6 @@ export default function Home() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 24 }}>
 
-        {/* CASE INPUT */}
         <div style={card}>
           <h2>Case Input</h2>
 
@@ -81,6 +82,27 @@ export default function Home() {
                 <option>Macroscopic</option>
                 <option>Present (unspecified)</option>
               </select>
+
+              <select
+                value={form.hpvStatus}
+                onChange={(e) => setForm({ ...form, hpvStatus: e.target.value })}
+                style={input}
+              >
+                <option>Unknown</option>
+                <option>Positive</option>
+                <option>Negative</option>
+              </select>
+
+              <select
+                value={form.tumorLaterality}
+                onChange={(e) =>
+                  setForm({ ...form, tumorLaterality: e.target.value })
+                }
+                style={input}
+              >
+                <option>Lateralized</option>
+                <option>Midline / Crossing midline</option>
+              </select>
             </>
           )}
 
@@ -89,19 +111,11 @@ export default function Home() {
           </button>
         </div>
 
-        {/* RECOMMENDATION */}
         <div style={card}>
           <h2>Recommendation</h2>
 
-          {!result && (
-            <p style={{ color: "#64748b" }}>
-              Enter case parameters and generate recommendation.
-            </p>
-          )}
-
           {result && (
             <>
-              {/* RISK STRIP */}
               <div
                 style={{
                   backgroundColor: riskColors[result.riskLevel],
@@ -116,69 +130,27 @@ export default function Home() {
               </div>
 
               <p><strong>Summary:</strong> {result.summary}</p>
-              <p><strong>GTV:</strong> {result.gtv}</p>
-              <p><strong>CTV:</strong> {result.ctv}</p>
               <p><strong>Elective:</strong> {result.electiveText}</p>
-              <p><strong>PTV:</strong> {result.ptv}</p>
-
-              {result.deepExtensions.length > 0 && (
-                <div style={{ marginTop: 20 }}>
-                  <h3>Deep Space Extensions</h3>
-                  <ul>
-                    {result.deepExtensions.map((d, i) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <details style={{ marginTop: 20 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-                  Structured Nodal Levels
-                </summary>
-                <pre style={codeBlock}>
-{JSON.stringify(
-  {
-    laterality: result.laterality,
-    includedLevels: result.includedLevels,
-  },
-  null,
-  2
-)}
-                </pre>
-              </details>
-
-              <details style={{ marginTop: 20 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-                  Anatomical Boundaries
-                </summary>
-                <pre style={codeBlock}>
-{JSON.stringify(result.levelBoundaries, null, 2)}
-                </pre>
-              </details>
             </>
           )}
         </div>
 
-        {/* EVIDENCE */}
         <div style={card}>
-          <h2>Evidence & Sources</h2>
+          <h2>Evidence</h2>
           {result &&
             result.citations.map((c, i) => (
-              <div key={i} style={citation}>
+              <div key={i}>
                 <strong>{c.organization}</strong>
                 <div>{c.title}</div>
-                <div style={{ fontSize: 13 }}>{c.year}</div>
-                <span style={badge}>{c.evidence}</span>
+                <div>{c.year}</div>
               </div>
             ))}
         </div>
+
       </div>
     </div>
   );
 }
-
-/* STYLES */
 
 const card = {
   backgroundColor: "white",
@@ -204,29 +176,4 @@ const button = {
   border: "none",
   borderRadius: 6,
   fontWeight: 600,
-};
-
-const codeBlock = {
-  marginTop: 10,
-  fontSize: 12,
-  backgroundColor: "#f8fafc",
-  padding: 12,
-  borderRadius: 6,
-};
-
-const citation = {
-  marginBottom: 15,
-  padding: 12,
-  backgroundColor: "#f8fafc",
-  borderRadius: 6,
-};
-
-const badge = {
-  marginTop: 6,
-  display: "inline-block",
-  fontSize: 12,
-  padding: "2px 8px",
-  borderRadius: 4,
-  backgroundColor: "#16a34a",
-  color: "white",
 };
