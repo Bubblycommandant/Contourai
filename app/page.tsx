@@ -7,6 +7,8 @@ export default function Home() {
   const [form, setForm] = useState({
     site: "",
     subsite: "",
+    oropharynxSubsite: "",
+    tStage: "",
     nStage: "",
     eneStatus: "Not Present",
   });
@@ -20,12 +22,11 @@ export default function Home() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f1f5f9", padding: 30 }}>
       <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 20 }}>
-        ContourAI – Structured H&N Module
+        ContourAI – Advanced Oropharynx Module
       </h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr", gap: 20 }}>
 
-        {/* LEFT PANEL */}
         <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
           <h2>Case Input</h2>
 
@@ -50,6 +51,29 @@ export default function Home() {
                 <option value="">Select Subsite</option>
                 <option>Oropharynx</option>
               </select>
+
+              <select
+                value={form.oropharynxSubsite}
+                onChange={(e) =>
+                  setForm({ ...form, oropharynxSubsite: e.target.value })
+                }
+                style={{ width: "100%", marginTop: 10 }}
+              >
+                <option value="">Select Oropharynx Subsite</option>
+                <option>Base of Tongue</option>
+                <option>Tonsil</option>
+                <option>Soft Palate</option>
+                <option>Posterior Pharyngeal Wall</option>
+              </select>
+
+              <input
+                placeholder="T Stage (e.g., T3)"
+                value={form.tStage}
+                onChange={(e) =>
+                  setForm({ ...form, tStage: e.target.value })
+                }
+                style={{ width: "100%", marginTop: 10 }}
+              />
 
               <input
                 placeholder="N Stage (e.g., N2b)"
@@ -91,11 +115,10 @@ export default function Home() {
           </button>
         </div>
 
-        {/* CENTER PANEL */}
         <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
           <h2>Recommendation</h2>
 
-          {result ? (
+          {result && (
             <>
               <p><strong>Summary:</strong> {result.summary}</p>
               <p><strong>GTV:</strong> {result.gtv}</p>
@@ -103,11 +126,22 @@ export default function Home() {
               <p><strong>Elective:</strong> {result.electiveText}</p>
               <p><strong>PTV:</strong> {result.ptv}</p>
 
+              {result.deepExtensions.length > 0 && (
+                <>
+                  <h3>Deep Space Extensions:</h3>
+                  <ul>
+                    {result.deepExtensions.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
               <details style={{ marginTop: 15 }}>
                 <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-                  Structured Levels (Machine Readable)
+                  Structured Levels
                 </summary>
-                <pre style={{ marginTop: 8, fontSize: 12 }}>
+                <pre style={{ fontSize: 12 }}>
 {JSON.stringify(
   {
     laterality: result.laterality,
@@ -118,52 +152,20 @@ export default function Home() {
 )}
                 </pre>
               </details>
-
-              <details style={{ marginTop: 15 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>
-                  Why this recommendation?
-                </summary>
-                <p style={{ marginTop: 8 }}>
-                  {result.explanation}
-                </p>
-              </details>
             </>
-          ) : (
-            <p style={{ color: "#64748b" }}>
-              Enter case details and generate recommendation.
-            </p>
           )}
         </div>
 
-        {/* RIGHT PANEL */}
         <div style={{ background: "white", padding: 20, borderRadius: 8 }}>
           <h2>Citations</h2>
-
-          {result ? (
+          {result && (
             <ul>
               {result.citations.map((c, i) => (
-                <li key={i} style={{ marginBottom: 10 }}>
-                  <div>
-                    <strong>{c.organization}</strong> – {c.title} ({c.year})
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      padding: "2px 6px",
-                      borderRadius: 4,
-                      backgroundColor: "#16a34a",
-                      color: "white",
-                    }}
-                  >
-                    {c.evidence}
-                  </span>
+                <li key={i}>
+                  {c.organization} – {c.title} ({c.year})
                 </li>
               ))}
             </ul>
-          ) : (
-            <p style={{ color: "#64748b" }}>
-              Citations will appear here.
-            </p>
           )}
         </div>
 
