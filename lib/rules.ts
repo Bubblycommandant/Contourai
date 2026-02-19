@@ -23,7 +23,7 @@ export type Recommendation = {
 };
 
 export function generateRecommendation(data: any): Recommendation {
-  const { site, subsite, tStage, nStage, eneStatus } = data;
+  const { site, subsite, tStage, nStage, eneStatus, hpvStatus } = data;
 
   const ICRU = {
     organization: "ICRU",
@@ -40,18 +40,27 @@ export function generateRecommendation(data: any): Recommendation {
     let rpnIncluded = false;
     let riskLevel: RiskLevel = "LOW";
 
+    const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
     const advancedN = nStage?.includes("N2");
     const enePresent =
       eneStatus === "Microscopic" ||
       eneStatus === "Macroscopic" ||
       eneStatus === "Present (unspecified)";
-    const advancedT = tStage?.includes("T3") || tStage?.includes("T4");
+    const earlyN = nStage?.includes("N0") || nStage?.includes("N1");
 
+    // HPV Influence on bilaterality in early disease
+    if (hpvStatus === "Positive" && earlyN && !enePresent) {
+      laterality = "Ipsilateral";
+      riskLevel = "LOW";
+    }
+
+    // Standard nodal logic
     if (advancedN) {
       laterality = "Bilateral";
       riskLevel = "INTERMEDIATE";
     }
 
+    // ENE logic
     if (eneStatus === "Microscopic") {
       ctvMargin = "7–10 mm";
       riskLevel = "INTERMEDIATE";
@@ -62,6 +71,7 @@ export function generateRecommendation(data: any): Recommendation {
       riskLevel = "HIGH";
     }
 
+    // Retropharyngeal logic
     if (advancedN || enePresent) {
       rpnIncluded = true;
       laterality = "Bilateral";
@@ -81,7 +91,7 @@ export function generateRecommendation(data: any): Recommendation {
 
     return {
       summary:
-        "Oropharynx — nodal, ENE, deep extension and boundary metadata applied.",
+        "Oropharynx — stage, ENE, HPV and anatomical metadata applied.",
       gtv:
         "All gross primary tumor and radiologically involved nodes.",
       ctv:
@@ -95,7 +105,7 @@ export function generateRecommendation(data: any): Recommendation {
       deepExtensions,
       riskLevel,
       explanation:
-        "Risk level derived from T stage, N stage and ENE status.",
+        "Risk level derived from T stage, N stage, ENE status and HPV status. HPV-positive early disease may allow ipsilateral coverage.",
       citations: [
         {
           organization: "EORTC",
